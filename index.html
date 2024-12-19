@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numérax</title> <!-- Nom de la page dans l'onglet -->
+
+    <!-- Ajout du favicon -->
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222222;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            flex-direction: column;
+        }
+
+        #menu {
+            text-align: center;
+        }
+
+        #menu h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        #menu button {
+            padding: 20px 40px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+
+        #menu button:hover {
+            background-color: #45a049;
+        }
+
+        #game {
+            width: 1000px;
+            height: 600px;
+            background-color: #333333;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            display: none;
+            background-image: url('images/foret.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        #player, #enemy {
+            position: absolute;
+            bottom: 50px;
+        }
+
+        #player {
+            left: 50px;
+            width: 150px;
+        }
+
+        #enemy {
+            right: 50px;
+            width: 150px;
+            transition: opacity 0.3s ease;
+        }
+
+        #question {
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #answer {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            flex-direction: column;
+        }
+
+        #answer input {
+            padding: 15px;
+            font-size: 24px;
+            margin: 10px;
+            width: 80px;
+            text-align: center;
+            border-radius: 8px;
+            border: none;
+        }
+
+        #answer button {
+            padding: 15px 30px;
+            font-size: 24px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #answer button:hover {
+            background-color: #45a049;
+        }
+
+        #enemy-health-bar, #player-health-bar {
+            width: 300px;
+            height: 30px;
+            background-color: #777;
+            position: absolute;
+            top: 20px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #enemy-health {
+            height: 100%;
+            background-color: red;
+            width: 100%;
+            transition: width 0.5s;
+        }
+
+        #player-health {
+            height: 100%;
+            background-color: green;
+            width: 100%;
+            transition: width 0.5s;
+        }
+
+        #enemy-health-bar {
+            right: 50px;
+        }
+
+        #player-health-bar {
+            left: 50px;
+        }
+
+        #enemy-health-text, #player-health-text {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            color: white;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .enemy-image, .player-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: bold;
+            color: red;
+        }
+
+        /* Effet de feu */
+        .fire-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-size: cover;
+            animation: fire 0.5s linear;
+        }
+
+        @keyframes fire {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .fire-to-enemy {
+            left: 50%;
+            bottom: 100px;
+            animation: fireToEnemy 1s forwards;
+        }
+
+        @keyframes fireToEnemy {
+            0% {
+                left: 50%;
+                opacity: 1;
+            }
+            100% {
+                left: 80%;
+                opacity: 0;
+            }
+        }
+
+        .fire-to-player {
+            right: 50%;
+            bottom: 100px;
+            animation: fireToPlayer 1s forwards;
+        }
+
+        @keyframes fireToPlayer {
+            0% {
+                right: 50%;
+                opacity: 1;
+            }
+            100% {
+                right: 80%;
+                opacity: 0;
+            }
+        }
+
+        #level {
+            font-size: 20px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #fff;
+        }
+
+        #level-number {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>Bienvenue dans Numérax</h1>
+        <button onclick="startGame()">Commencer le Jeu</button>
+    </div>
+
+    <div id="game">
+        <div id="player">
+            <img src="images/joueur.png" class="player-image" alt="Player">
+        </div>
+        <div id="enemy">
+            <img src="images/ennemi.png" class="enemy-image" alt="Enemy">
+        </div>
+
+        <div id="enemy-health-bar">
+            <div id="enemy-health"></div>
+            <div id="enemy-health-text"></div>
+        </div>
+
+        <div id="player-health-bar">
+            <div id="player-health"></div>
+            <div id="player-health-text"></div>
+        </div>
+
+        <div id="question"></div>
+
+        <div id="answer">
+            <input type="number" id="player-answer" placeholder="Réponse" />
+            <button onclick="submitAnswer()">Valider</button>
+        </div>
+
+        <div id="game-over" class="hidden">Jeu terminé! L'ennemi a gagné!</div>
+        <div id="level">Niveau: <span id="level-number">1</span></div>
+    </div>
+
+    <script>
+        let playerHealth = 100;
+        let enemyHealth = 100;
+        let correctAnswer;
+        let currentQuestion;
+        let level = 1;
+
+        function startGame() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            generateQuestion();
+            updateHealthBars();
+        }
+
+        function generateQuestion() {
+            const num1 = Math.floor(Math.random() * 20) + 2;
+            const num2 = Math.floor(Math.random() * 20) + 2;
+            const operator = Math.random() > 0.5 ? '+' : '-';
+            let answer;
+
+            if (operator === '+') {
+                answer = num1 + num2;
+            } else {
+                answer = num1 - num2;
+            }
+
+            currentQuestion = `${num1} ${operator} ${num2} = ?`;
+            correctAnswer = answer;
+
+            document.getElementById('question').innerText = currentQuestion;
+        }
+
+        function updateHealthBars() {
+            const playerHealthBar = document.getElementById('player-health');
+            const enemyHealthBar = document.getElementById('enemy-health');
+            const playerHealthText = document.getElementById('player-health-text');
+            const enemyHealthText = document.getElementById('enemy-health-text');
+
+            playerHealthBar.style.width = `${playerHealth}%`;
+            enemyHealthBar.style.width = `${enemyHealth}%`;
+
+            playerHealthText.innerText = `${playerHealth}%`;
+            enemyHealthText.innerText = `${enemyHealth}%`;
+        }
+
+        function submitAnswer() {
+            const playerAnswer = parseInt(document.getElementById('player-answer').value);
+
+            if (isNaN(playerAnswer)) {
+                alert("Veuillez entrer une réponse valide.");
+                return;
+            }
+
+            if (playerAnswer === correctAnswer) {
+                // Si la réponse est correcte, infliger des dégâts à l'ennemi
+                const fire = document.createElement('div');
+                fire.classList.add('fire-effect', 'fire-to-enemy');
+                fire.style.backgroundImage = "url('images/fire1.png')";
+                document.getElementById('game').appendChild(fire);
+
+                enemyHealth -= 15;
+                if (enemyHealth <= 0) {
+                    enemyHealth = 0;
+                    alert("L'ennemi est vaincu!");
+                    level++;
+                    resetGame();
+                }
+            } else {
+                // Si la réponse est incorrecte, infliger des dégâts au joueur
+                const fire = document.createElement('div');
+                fire.classList.add('fire-effect', 'fire-to-player');
+                fire.style.backgroundImage = "url('images/fire2.png')";
+                document.getElementById('game').appendChild(fire);
+
+                playerHealth -= 15;
+                if (playerHealth <= 0) {
+                    playerHealth = 0;
+                    document.getElementById('game-over').classList.remove('hidden');
+                    setTimeout(resetGame, 2000);
+                }
+            }
+
+            updateHealthBars();
+            generateQuestion();
+            document.getElementById('player-answer').value = '';
+        }
+
+        function resetGame() {
+            playerHealth = 100;
+            enemyHealth = 100 + (level * 20);
+            updateHealthBars();
+            generateQuestion();
+            document.getElementById('game-over').classList.add('hidden');
+            document.getElementById('level-number').innerText = level;
+        }
+    </script>
+</body>
+</html>
